@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
@@ -104,8 +103,9 @@ public class AVCallFloatView extends FrameLayout {
                 updateViewPosition();
                 break;
             case MotionEvent.ACTION_UP:
-                if (Math.abs(xDownInScreen - xInScreen) <= ViewConfiguration.get(getContext()).getScaledTouchSlop()
-                        && Math.abs(yDownInScreen - yInScreen) <= ViewConfiguration.get(getContext()).getScaledTouchSlop()) {
+                // ViewConfiguration.get(getContext()).getScaledTouchSlop() 尺度太大，移动距离较短时明明是移动，但会执行到这里
+                if (Math.abs(xDownInScreen - xInScreen) < 5
+                        && Math.abs(yDownInScreen - yInScreen) < 5) {
                     // 点击效果
                     Toast.makeText(getContext(), "this float window is clicked", Toast.LENGTH_SHORT).show();
                 } else {
@@ -123,48 +123,46 @@ public class AVCallFloatView extends FrameLayout {
         isAnchoring = true;
         int screenWidth = ScreenUtil.getScreenWidth(getContext());
         int screenHeight = ScreenUtil.getScreenHeight(getContext());
-        int middleX = mParams.x + getWidth() / 2;
+        int width = getWidth(); // 悬浮窗本身宽度
+        int middleX = mParams.x + width / 2; // 悬浮窗中心点在屏幕中的横坐标
 
-
-        int animTime = 0;
         int xDistance = 0;
         int yDistance = 0;
 
-        int dp_25 = ScreenUtil.dp2px(getContext(), 15);
+        // 贴边离屏幕距离
+        int margin = ScreenUtil.dp2px(getContext(), 15);
 
-        //1
-        if (middleX <= dp_25 + getWidth() / 2) {
-            xDistance = dp_25 - mParams.x;
+        //1 在左边靠得太近，要往右移到贴边位置
+        if (middleX <= margin + width / 2) {
+            xDistance = margin - mParams.x;
         }
-        //2
+        //2 在贴边位置右边，且在屏幕左边，向左移
         else if (middleX <= screenWidth / 2) {
-            xDistance = dp_25 - mParams.x;
+            xDistance = margin - mParams.x;
         }
-        //3
-        else if (middleX >= screenWidth - getWidth() / 2 - dp_25) {
-            xDistance = screenWidth - mParams.x - getWidth() - dp_25;
+        //3 靠右边贴得太紧，往左移到贴边位置
+        else if (middleX >= screenWidth - width / 2 - margin) {
+            xDistance = screenWidth - mParams.x - width - margin;
         }
-        //4
+        //4 只剩下在屏幕右侧，且在右侧贴边位置左边的情况
         else {
-            xDistance = screenWidth - mParams.x - getWidth() - dp_25;
+            xDistance = screenWidth - mParams.x - width - margin;
         }
 
         //1
-        if (mParams.y < dp_25) {
-            yDistance = dp_25 - mParams.y;
+        if (mParams.y < margin) {
+            yDistance = margin - mParams.y;
         }
         //2
-        else if (mParams.y + getHeight() + dp_25 >= screenHeight) {
-            yDistance = screenHeight - dp_25 - mParams.y - getHeight();
+        else if (mParams.y + getHeight() + margin >= screenHeight) {
+            yDistance = screenHeight - margin - mParams.y - getHeight();
         }
         Log.e(TAG, "xDistance  " + xDistance + "   yDistance" + yDistance);
 
-        animTime = Math.abs(xDistance) > Math.abs(yDistance) ? (int) (((float) xDistance / (float) screenWidth) * 600f)
+        int animTime = Math.abs(xDistance) > Math.abs(yDistance) ? (int) (((float) xDistance / (float) screenWidth) * 600f)
                 : (int) (((float) yDistance / (float) screenHeight) * 900f);
         this.post(new AnchorAnimRunnable(Math.abs(animTime), xDistance, yDistance, System.currentTimeMillis()));
     }
-
-
 
     private class AnchorAnimRunnable implements Runnable {
 
@@ -189,6 +187,8 @@ public class AVCallFloatView extends FrameLayout {
         @Override
         public void run() {
             if (System.currentTimeMillis() >= currentStartTime + animTime) {
+                // 移动距离很小导致 animTime 很小，然后第一次就进这里返回
+                // 或者做了些移动，最后执行到这里，但之前最后一次移动悬浮窗并未准确到贴边位置
                 if (mParams.x != (startX + xDistance) || mParams.y != (startY + yDistance)) {
                     mParams.x = startX + xDistance;
                     mParams.y = startY + yDistance;
