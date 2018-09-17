@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -287,10 +286,8 @@ public class FloatWindowManager {
             windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
         }
 
-        Point size = new Point();
-        windowManager.getDefaultDisplay().getSize(size);
-        int screenWidth = size.x;
-        int screenHeight = size.y;
+        int screenWidth = ScreenUtil.getScreenWidth(context);
+        int screenHeight = ScreenUtil.getScreenHeight(context);
 
         mParams = new WindowManager.LayoutParams();
         mParams.packageName = context.getPackageName();
@@ -308,8 +305,8 @@ public class FloatWindowManager {
         mParams.type = mType;
         mParams.format = PixelFormat.RGBA_8888;
         mParams.gravity = Gravity.LEFT | Gravity.TOP;
-        mParams.x = screenWidth - dp2px(context, 100);
-        mParams.y = screenHeight - dp2px(context, 171);
+        mParams.x = screenWidth - ScreenUtil.dp2px(context, 100);
+        mParams.y = screenHeight - ScreenUtil.dp2px(context, 171);
 
 
 //        ImageView imageView = new ImageView(mContext);
@@ -333,8 +330,4 @@ public class FloatWindowManager {
         }
     }
 
-    private int dp2px(Context context, float dp){
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dp * scale + 0.5f);
-    }
 }

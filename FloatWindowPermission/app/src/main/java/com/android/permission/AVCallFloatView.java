@@ -4,7 +4,6 @@
 package com.android.permission;
 
 import android.content.Context;
-import android.graphics.Point;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -122,10 +121,8 @@ public class AVCallFloatView extends FrameLayout {
 
     private void anchorToSide() {
         isAnchoring = true;
-        Point size = new Point();
-        windowManager.getDefaultDisplay().getSize(size);
-        int screenWidth = size.x;
-        int screenHeight = size.y;
+        int screenWidth = ScreenUtil.getScreenWidth(getContext());
+        int screenHeight = ScreenUtil.getScreenHeight(getContext());
         int middleX = mParams.x + getWidth() / 2;
 
 
@@ -133,7 +130,7 @@ public class AVCallFloatView extends FrameLayout {
         int xDistance = 0;
         int yDistance = 0;
 
-        int dp_25 = dp2px(15);
+        int dp_25 = ScreenUtil.dp2px(getContext(), 15);
 
         //1
         if (middleX <= dp_25 + getWidth() / 2) {
@@ -167,10 +164,7 @@ public class AVCallFloatView extends FrameLayout {
         this.post(new AnchorAnimRunnable(Math.abs(animTime), xDistance, yDistance, System.currentTimeMillis()));
     }
 
-    public int dp2px(float dp){
-        final float scale = getContext().getResources().getDisplayMetrics().density;
-        return (int) (dp * scale + 0.5f);
-    }
+
 
     private class AnchorAnimRunnable implements Runnable {
 
