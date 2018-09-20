@@ -59,6 +59,7 @@ public class AVCallFloatView extends FrameLayout {
     private WindowManager windowManager = null;
     private WindowManager.LayoutParams mParams = null;
 
+    private View floatView;
 
     public AVCallFloatView(Context context) {
         super(context);
@@ -68,7 +69,7 @@ public class AVCallFloatView extends FrameLayout {
     private void initView() {
         windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
         LayoutInflater inflater = LayoutInflater.from(getContext());
-        View floatView = inflater.inflate(R.layout.float_window_layout, null);
+        floatView = inflater.inflate(R.layout.float_window_layout, null);
 
         addView(floatView);
 
@@ -218,4 +219,5 @@ public class AVCallFloatView extends FrameLayout {
         Log.e(TAG, "x  " + mParams.x + "   y  " + mParams.y);
         windowManager.updateViewLayout(this, mParams);
     }
+
 }

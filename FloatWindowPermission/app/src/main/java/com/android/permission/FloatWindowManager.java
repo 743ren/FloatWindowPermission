@@ -319,4 +319,26 @@ public class FloatWindowManager {
         }
     }
 
+    /**
+     * App切换到后台时调用
+     */
+
+    private int x,y;
+    public void hide(boolean hide) {
+        if (hide) {
+            if (!isWindowDismiss) {
+                x = mParams.x;
+                y = mParams.y;
+                dismissWindow();
+            }
+        } else {
+            if (isWindowDismiss) {
+                mParams.x = x;
+                mParams.y = y;
+                isWindowDismiss = false;
+                floatView.setIsShowing(true);
+                windowManager.addView(floatView, mParams);
+            }
+        }
+    }
 }
