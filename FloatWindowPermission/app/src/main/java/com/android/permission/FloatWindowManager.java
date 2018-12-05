@@ -12,6 +12,8 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
@@ -56,10 +58,32 @@ public class FloatWindowManager {
         return instance;
     }
 
-    public void applyOrShowFloatWindow(Context context) {
+    private boolean vivoHasReCheck;
+
+    public void applyOrShowFloatWindow(final Context context) {
         if (checkPermission(context)) {
+            if (RomUtils.checkIsVivoRom()) {
+                // 检查权限成功后，重置状态，以让下次检查失败能再检查一次
+                if (vivoHasReCheck) {
+                    vivoHasReCheck = false;
+                }
+            }
             showWindow(context);
         } else {
+            // 6.0 以上的 Vivo 系统有 bug，应用从后台到前台立刻检查权限，明明有了，返回是没有
+            // 还有没有其他情况，没人清楚
+            if (RomUtils.checkIsVivoRom()) {
+                if (!vivoHasReCheck) {
+                    vivoHasReCheck = true; // 已经重新检查过了
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            applyOrShowFloatWindow(context);
+                        }
+                    }, 200);
+                    return;
+                }
+            }
             applyPermission(context);
         }
     }
